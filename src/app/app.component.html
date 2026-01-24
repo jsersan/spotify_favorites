@@ -1,0 +1,147 @@
+<div class="container">
+  <header class="header">
+    <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" class="spotify-logo-link" title="Ir a Spotify">
+      <svg class="spotify-logo" viewBox="0 0 1134 340" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#1db954" d="M8 171c0 92 76 168 168 168s168-76 168-168S268 4 176 4 8 79 8 171zm230 78c-39-24-89-30-147-17-14 2-16-18-4-20 64-15 118-8 162 19 11 7 0 24-11 18zm17-45c-45-28-114-36-167-20-17 5-23-21-7-25 61-18 136-9 188 23 14 9 0 31-14 22zM80 133c-17 6-28-23-9-30 59-18 159-15 221 22 17 9 1 37-17 27-54-32-144-35-195-19z"/>
+      </svg>
+    </a>
+    <h1>Letras y Música - Txema Serrano</h1>
+  </header>
+  <!-- resto del código sin cambios -->
+
+  <!-- MODAL DE CONFIRMACIÓN -->
+  <div *ngIf="showDeleteModal" class="modal-overlay" (click)="cancelDelete()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Eliminar de favoritos</h2>
+      </div>
+      <div class="modal-body">
+        <p class="modal-song-title">{{ deleteCandidate?.title }}</p>
+        <p class="modal-artist">{{ deleteCandidate?.artist }}</p>
+        <p class="modal-message">¿Estás seguro de que quieres eliminar esta canción de tus favoritos?</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal btn-cancel" (click)="cancelDelete()">
+          Cancelar
+        </button>
+        <button class="btn-modal btn-confirm" (click)="confirmDelete()">
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <main class="main-content">
+    <!-- SECCIÓN DE FAVORITOS -->
+    <div *ngIf="(favorites$ | async)?.length" class="favorites-section">
+      <h2>⭐ Mis Favoritas</h2>
+      <div class="favorites-list">
+        <div *ngFor="let fav of favorites$ | async" class="favorite-item">
+          <div class="favorite-info" (click)="loadFavorite(fav)">
+            <h4>{{ fav.title }}</h4>
+            <p>{{ fav.artist }}</p>
+          </div>
+          <div class="favorite-actions">
+            <button class="btn-icon btn-delete" (click)="askDelete(fav.artist, fav.title)" title="Eliminar">
+              🗑️
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORMULARIO DE BÚSQUEDA -->
+    <div class="search-box">
+      <h2>Buscar Canción</h2>
+
+      <form (ngSubmit)="searchLyrics()" class="search-form">
+        <div class="form-group">
+          <label for="artist">Artista</label>
+          <input type="text" id="artist" [(ngModel)]="artist" name="artist" placeholder="Ejemplo: The Beatles"
+            [disabled]="isLoading" required>
+        </div>
+
+        <div class="form-group">
+          <label for="title">Canción</label>
+          <input type="text" id="title" [(ngModel)]="title" name="title" placeholder="Ejemplo: Help"
+            [disabled]="isLoading" required>
+        </div>
+
+        <div class="button-group">
+          <button type="submit" class="btn btn-search" [disabled]="isLoading || !artist.trim() || !title.trim()">
+            {{ isLoading ? 'Buscando...' : 'Buscar' }}
+          </button>
+
+          <button type="button" class="btn btn-clear" (click)="clearSearch()" [disabled]="isLoading">
+            Limpiar
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- LOADING -->
+    <div *ngIf="isLoading" class="loading-message">
+      <div class="spinner"></div>
+      <p>Buscando...</p>
+    </div>
+
+    <!-- ERROR -->
+    <div *ngIf="errorMessage && searchAttempted && !isLoading" class="error-box">
+      <p>{{ errorMessage }}</p>
+    </div>
+
+    <!-- RESULTADOS -->
+    <div *ngIf="(lyrics || spotifyTrack) && !isLoading" class="results-container">
+
+      <!-- REPRODUCTOR SPOTIFY -->
+      <div *ngIf="spotifyTrack" class="spotify-player">
+        <h3>🎧 Reproducir</h3>
+
+        <!-- Preview de audio -->
+        <div *ngIf="spotifyTrack.preview_url" class="audio-preview">
+          <label>Preview (30 seg):</label>
+          <audio controls class="audio-player">
+            <source [src]="spotifyTrack.preview_url" type="audio/mpeg">
+          </audio>
+        </div>
+
+        <!-- Spotify embed -->
+        <div class="spotify-embed">
+          <iframe [src]="getSpotifyEmbedUrl()" width="100%" height="152" frameborder="0" allowtransparency="true"
+            allow="encrypted-media">
+          </iframe>
+        </div>
+
+        <!-- MENSAJE INFORMATIVO -->
+        <div class="player-info">
+          <p class="info-icon">ℹ️</p>
+          <p class="info-text">
+            <strong>Nota:</strong> En algunos navegadores puede ser necesario hacer clic dos veces en el botón de
+            reproducción para que el audio comience a sonar.
+          </p>
+        </div>
+
+        <!-- Botón Spotify -->
+        <a [href]="spotifyTrack.external_urls.spotify" target="_blank" class="btn btn-spotify">
+          🎵 Abrir en Spotify
+        </a>
+      </div>
+
+      <!-- LETRAS CON BOTÓN DE FAVORITOS -->
+      <div *ngIf="lyrics" class="lyrics-box">
+        <div class="lyrics-header">
+          <h3>📝 {{ artist }} - {{ title }}</h3>
+          <button class="btn-icon btn-favorite" [class.active]="isFavorite()" (click)="toggleFavorite()"
+            [title]="isFavorite() ? 'Quitar de favoritos' : 'Añadir a favoritos'">
+            {{ isFavorite() ? '⭐' : '☆' }}
+          </button>
+        </div>
+        <div class="lyrics-content">
+          <p *ngFor="let line of getLyricsLines()" class="lyrics-line">
+            {{ line }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
