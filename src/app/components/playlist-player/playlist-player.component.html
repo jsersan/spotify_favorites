@@ -1,0 +1,99 @@
+<div class="playlist-player" *ngIf="favorites.length > 0">
+    <div class="player-header">
+      <h3>🎵 Reproductor de Favoritos</h3>
+      <span class="track-counter">{{ currentIndex + 1 }} / {{ favorites.length }}</span>
+    </div>
+  
+    <div class="current-track" *ngIf="currentFavorite">
+      <div class="track-info">
+        <h4>{{ currentFavorite.title }}</h4>
+        <p>{{ currentFavorite.artist }}</p>
+      </div>
+    </div>
+  
+    <!-- Spotify Player embebido -->
+    <div class="spotify-embed" *ngIf="currentSpotifyTrack && showEmbed">
+      <iframe 
+        [src]="getSpotifyEmbedUrl()" 
+        width="100%" 
+        height="152" 
+        frameborder="0" 
+        allowtransparency="true"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        loading="eager">
+      </iframe>
+    </div>
+  
+    <!-- Información útil -->
+    <div class="player-info">
+      <p class="info-icon">ℹ️</p>
+      <p class="info-text">
+        <strong>Cómo usar:</strong> Las políticas de seguridad del navegador impiden ejecutar el autoplay. Usa los controles del reproductor de Spotify (arriba) para reproducir las canciones. 
+        Los botones ⏮️ ⏭️ te permiten navegar entre tus favoritos. 
+        Para escuchar la canción completa, haz clic en "Abrir en Spotify" 👇
+      </p>
+    </div>
+  
+    <!-- Botón para abrir en Spotify -->
+    <div class="spotify-button-container" *ngIf="currentSpotifyTrack">
+      <button class="btn-open-spotify" (click)="openInSpotify()">
+        🎵 Abrir en Spotify
+      </button>
+    </div>
+  
+    <!-- Controles de navegación únicamente -->
+    <div class="player-controls">
+      <button 
+        class="control-btn btn-prev" 
+        (click)="previous()" 
+        [disabled]="currentIndex === 0"
+        title="Canción anterior">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+        </svg>
+      </button>
+  
+      <div class="current-track-indicator">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+        </svg>
+        <div class="track-info-compact">
+          <span class="track-name">{{ currentFavorite?.title || 'Sin canción' }}</span>
+          <span class="artist-name">{{ currentFavorite?.artist || '' }}</span>
+        </div>
+      </div>
+  
+      <button 
+        class="control-btn btn-next" 
+        (click)="next()" 
+        [disabled]="currentIndex === favorites.length - 1"
+        title="Siguiente canción">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+        </svg>
+      </button>
+    </div>
+  
+    <!-- Playlist -->
+    <div class="playlist-section">
+      <h4>Lista de reproducción</h4>
+      <div class="playlist-items">
+        <div 
+          *ngFor="let fav of favorites; let i = index" 
+          class="playlist-item"
+          [class.active]="i === currentIndex"
+          (click)="selectTrack(i)">
+          <span class="track-number">{{ i + 1 }}</span>
+          <div class="track-details">
+            <span class="track-title">{{ fav.title }}</span>
+            <span class="track-artist">{{ fav.artist }}</span>
+          </div>
+          <span class="current-indicator" *ngIf="i === currentIndex">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+            </svg>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>

@@ -46,7 +46,7 @@ export class FavoritesService {
     
     // Evitar duplicados
     const exists = favorites.some(
-      f => f.artist.toLowerCase() === favorite.artist.toLowerCase() &&
+      (f: { artist: string; title: string; }) => f.artist.toLowerCase() === favorite.artist.toLowerCase() &&
            f.title.toLowerCase() === favorite.title.toLowerCase()
     );
     
@@ -58,7 +58,7 @@ export class FavoritesService {
 
   removeFavorite(artist: string, title: string): void {
     const favorites = this.favoritesSubject.value.filter(
-      f => !(f.artist.toLowerCase() === artist.toLowerCase() &&
+      ( f: { artist: string; title: string; }) => !(f.artist.toLowerCase() === artist.toLowerCase() &&
              f.title.toLowerCase() === title.toLowerCase())
     );
     this.saveFavorites(favorites);
@@ -66,12 +66,20 @@ export class FavoritesService {
 
   isFavorite(artist: string, title: string): boolean {
     return this.favoritesSubject.value.some(
-      f => f.artist.toLowerCase() === artist.toLowerCase() &&
+      (f: { artist: string; title: string; }) => f.artist.toLowerCase() === artist.toLowerCase() &&
            f.title.toLowerCase() === title.toLowerCase()
     );
   }
 
   getFavorites(): Favorite[] {
     return this.favoritesSubject.value;
+  }
+
+  // Nuevo método para reordenar
+  reorderFavorites(fromIndex: number, toIndex: number): void {
+    const favorites = [...this.favoritesSubject.value];
+    const [movedItem] = favorites.splice(fromIndex, 1);
+    favorites.splice(toIndex, 0, movedItem);
+    this.saveFavorites(favorites);
   }
 }

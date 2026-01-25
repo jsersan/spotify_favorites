@@ -7,7 +7,6 @@
     </a>
     <h1>Letras y Música - Txema Serrano</h1>
   </header>
-  <!-- resto del código sin cambios -->
 
   <!-- MODAL DE CONFIRMACIÓN -->
   <div *ngIf="showDeleteModal" class="modal-overlay" (click)="cancelDelete()">
@@ -32,11 +31,27 @@
   </div>
 
   <main class="main-content">
+    <!-- REPRODUCTOR DE PLAYLIST -->
+    <app-playlist-player 
+      *ngIf="favoritesList.length > 0" 
+      [favorites]="favoritesList">
+    </app-playlist-player>
+
     <!-- SECCIÓN DE FAVORITOS -->
-    <div *ngIf="(favorites$ | async)?.length" class="favorites-section">
+    <div *ngIf="favoritesList.length > 0" class="favorites-section">
       <h2>⭐ Mis Favoritas</h2>
+      <p class="drag-hint">💡 Arrastra las canciones para reordenarlas</p>
       <div class="favorites-list">
-        <div *ngFor="let fav of favorites$ | async" class="favorite-item">
+        <div 
+          *ngFor="let fav of favoritesList; let i = index" 
+          class="favorite-item"
+          draggable="true"
+          (dragstart)="onDragStart($event, i)"
+          (dragover)="onDragOver($event)"
+          (drop)="onDrop($event, i)"
+          (dragend)="onDragEnd()"
+          [class.dragging]="draggedIndex === i">
+          <span class="drag-handle" title="Arrastra para reordenar">⋮⋮</span>
           <div class="favorite-info" (click)="loadFavorite(fav)">
             <h4>{{ fav.title }}</h4>
             <p>{{ fav.artist }}</p>
@@ -94,38 +109,38 @@
     <div *ngIf="(lyrics || spotifyTrack) && !isLoading" class="results-container">
 
       <!-- REPRODUCTOR SPOTIFY -->
-      <div *ngIf="spotifyTrack" class="spotify-player">
-        <h3>🎧 Reproducir</h3>
+<!--       <div *ngIf="spotifyTrack" class="spotify-player">
+        <h3>🎧 Reproducir</h3> -->
 
         <!-- Preview de audio -->
-        <div *ngIf="spotifyTrack.preview_url" class="audio-preview">
+<!--         <div *ngIf="spotifyTrack.preview_url" class="audio-preview">
           <label>Preview (30 seg):</label>
           <audio controls class="audio-player">
             <source [src]="spotifyTrack.preview_url" type="audio/mpeg">
           </audio>
-        </div>
+        </div> -->
 
         <!-- Spotify embed -->
-        <div class="spotify-embed">
+<!--         <div class="spotify-embed">
           <iframe [src]="getSpotifyEmbedUrl()" width="100%" height="152" frameborder="0" allowtransparency="true"
             allow="encrypted-media">
           </iframe>
-        </div>
+        </div> -->
 
         <!-- MENSAJE INFORMATIVO -->
-        <div class="player-info">
+<!--         <div class="player-info">
           <p class="info-icon">ℹ️</p>
           <p class="info-text">
             <strong>Nota:</strong> En algunos navegadores puede ser necesario hacer clic dos veces en el botón de
             reproducción para que el audio comience a sonar.
           </p>
-        </div>
+        </div> -->
 
         <!-- Botón Spotify -->
-        <a [href]="spotifyTrack.external_urls.spotify" target="_blank" class="btn btn-spotify">
+<!--         <a [href]="spotifyTrack.external_urls.spotify" target="_blank" class="btn btn-spotify">
           🎵 Abrir en Spotify
         </a>
-      </div>
+      </div> -->
 
       <!-- LETRAS CON BOTÓN DE FAVORITOS -->
       <div *ngIf="lyrics" class="lyrics-box">

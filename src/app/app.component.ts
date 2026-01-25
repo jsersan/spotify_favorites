@@ -2,13 +2,13 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { forkJoin, Observable, throwError } from 'rxjs';
-import { catchError, retry } from 'rxjs/operators';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { forkJoin, Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 import { FavoritesService, Favorite } from './services/favorites.service';
 import { LyricsService } from './services/lyrics.service';
 import { SpotifyService } from './services/spotify.service';
 import { SpotifyTrack } from './models/music.models';
+import { PlaylistPlayerComponent } from './components/playlist-player/playlist-player.component';
 
 interface LyricsResponse {
   lyrics: string;
@@ -17,7 +17,7 @@ interface LyricsResponse {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PlaylistPlayerComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
@@ -41,9 +41,16 @@ export class AppComponent implements OnInit {
   searchAttempted = false;
   spotifyTrack: SpotifyTrack | null = null;
   favorites$!: Observable<Favorite[]>;
+  favoritesList: Favorite[] = [];
+  draggedIndex: number | null = null;
 
   ngOnInit(): void {
     this.favorites$ = this.favoritesService.favorites$;
+    
+    // Suscribirse a los cambios en favoritos
+    this.favorites$.subscribe((favorites: Favorite[]) => {
+      this.favoritesList = favorites;
+    });
   }
 
   private normalizeText(text: string): string {
@@ -110,7 +117,7 @@ export class AppComponent implements OnInit {
       lyrics: this.lyricsService.searchLyrics(this.artist, this.title),
       spotify: this.spotifyService.searchTrack(this.artist, this.title)
     }).subscribe({
-      next: (results) => {
+      next: (results: { lyrics: { lyrics: string; }; spotify: SpotifyTrack | null; }) => {
         this.isLoading = false;
         
         if (results.lyrics?.lyrics) {
@@ -194,7 +201,7 @@ export class AppComponent implements OnInit {
     
     // Buscar info de Spotify para esta canción
     this.spotifyService.searchTrack(fav.artist, fav.title).subscribe({
-      next: (track) => {
+      next: (track:any) => {
         if (track) {
           this.spotifyTrack = track;
         }
@@ -212,5 +219,35 @@ export class AppComponent implements OnInit {
 
   removeFavorite(artist: string, title: string): void {
     this.favoritesService.removeFavorite(artist, title);
+  }
+
+  // Métodos para drag & drop
+  onDragStart(event: DragEvent, index: number): void {
+    this.draggedIndex = index;
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/html', index.toString());
+    }
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+  }
+
+  onDrop(event: DragEvent, toIndex: number): void {
+    event.preventDefault();
+    
+    if (this.draggedIndex !== null && this.draggedIndex !== toIndex) {
+      this.favoritesService.reorderFavorites(this.draggedIndex, toIndex);
+    }
+    
+    this.draggedIndex = null;
+  }
+
+  onDragEnd(): void {
+    this.draggedIndex = null;
   }
 }
