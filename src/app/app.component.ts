@@ -9,6 +9,9 @@ import { LyricsService } from './services/lyrics.service';
 import { SpotifyService } from './services/spotify.service';
 import { SpotifyTrack } from './models/music.models';
 import { PlaylistPlayerComponent } from './components/playlist-player/playlist-player.component';
+import { TranslatePipe } from './pipes/translate.pipe';
+import { LanguageSelectorComponent } from './components/language-selector/language-selector.component';
+import { TranslationService } from './services/traslation.service';
 
 interface LyricsResponse {
   lyrics: string;
@@ -17,7 +20,7 @@ interface LyricsResponse {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, PlaylistPlayerComponent],
+  imports: [CommonModule, FormsModule, PlaylistPlayerComponent, TranslatePipe, LanguageSelectorComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
@@ -31,6 +34,7 @@ export class AppComponent implements OnInit {
   private spotifyService = inject(SpotifyService);
   private sanitizer = inject(DomSanitizer);
   private favoritesService = inject(FavoritesService);
+  translationService = inject(TranslationService);
   private readonly API_URL = 'https://api.lyrics.ovh/v1';
   
   artist = '';
@@ -105,7 +109,7 @@ export class AppComponent implements OnInit {
 
   searchLyrics(): void {
     if (!this.artist.trim() || !this.title.trim()) {
-      this.errorMessage = 'Ingresa artista y canción';
+      this.errorMessage = this.translationService.translate('error.required');
       return;
     }
 
@@ -129,12 +133,12 @@ export class AppComponent implements OnInit {
         }
         
         if (!this.lyrics && !this.spotifyTrack) {
-          this.errorMessage = 'No se encontró información';
+          this.errorMessage = this.translationService.translate('error.noData');
         }
       },
       error: () => {
         this.isLoading = false;
-        this.errorMessage = 'Error en la búsqueda';
+        this.errorMessage = this.translationService.translate('error.searchError');
       }
     });
   }

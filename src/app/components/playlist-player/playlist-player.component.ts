@@ -1,14 +1,16 @@
-import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Favorite } from '../../services/favorites.service';
 import { SpotifyService } from '../../services/spotify.service';
 import { SpotifyTrack } from '../../models/music.models';
+import { TranslatePipe } from '../../pipes/translate.pipe';
+import { TranslationService } from '../../services/traslation.service';
 
 @Component({
   selector: 'app-playlist-player',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './playlist-player.component.html',
   styleUrls: ['./playlist-player.component.css']
 })
@@ -20,10 +22,9 @@ export class PlaylistPlayerComponent implements OnInit, OnDestroy, OnChanges {
   currentSpotifyTrack: SpotifyTrack | null = null;
   showEmbed = true;
 
-  constructor(
-    private spotifyService: SpotifyService,
-    private sanitizer: DomSanitizer
-  ) {}
+  private spotifyService = inject(SpotifyService);
+  private sanitizer = inject(DomSanitizer);
+  translationService = inject(TranslationService);
 
   ngOnInit(): void {
     if (this.favorites.length > 0) {

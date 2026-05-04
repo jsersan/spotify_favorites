@@ -1,0 +1,18 @@
+<div class="language-selector">
+      <button 
+        class="lang-btn"
+        [class.active]="currentLanguage === 'es'"
+        (click)="setLanguage('es')"
+        title="{{ 'language.spanish' | translate }}">
+        ES
+      </button>
+      <span class="separator">|</span>
+      <button 
+        class="lang-btn"
+        [class.active]="currentLanguage === 'eu'"
+        (click)="setLanguage('eu')"
+        title="{{ 'language.basque' | translate }}">
+        EU
+      </button>
+    </div>
+    
